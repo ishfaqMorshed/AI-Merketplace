@@ -6,7 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/components/language-provider';
 import { DemoModal } from '@/components/demo-modal';
-import { MessageCircle, UserCheck, Check } from 'lucide-react';
+import { MessageCircle, UserCheck, Check, MessageSquare, Users, ArrowRight } from 'lucide-react';
+import chatbotBg from '@/assets/chatbot-bg.png';
+import recruitingBg from '@/assets/recruiting-bg.png';
 
 // Custom hook for scroll animations
 function useScrollAnimation() {
@@ -36,6 +38,28 @@ function useScrollAnimation() {
 
   return [ref, isVisible] as const;
 }
+
+// Helper functions for products (copied from products page)
+const getProductLink = (name: string): string => {
+  const nameKey = name.toLowerCase();
+  if (nameKey.includes('chatbot')) return '/chatbot-product';
+  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return '/recruiting-product';
+  return '/products'; // Default fallback
+};
+
+const getProductBackground = (name: string): string => {
+  const nameKey = name.toLowerCase();
+  if (nameKey.includes('chatbot')) return chatbotBg;
+  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return recruitingBg;
+  return chatbotBg; // Default
+};
+
+const getProductIcon = (name: string) => {
+  const nameKey = name.toLowerCase();
+  if (nameKey.includes('chatbot')) return MessageSquare;
+  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return Users;
+  return MessageSquare; // Default
+};
 
 export default function Home() {
   const { t } = useLanguage();
@@ -210,79 +234,97 @@ export default function Home() {
           ) : products && products.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {products.map((product: any) => {
-                // Helper function to get product link based on name
-                const getProductLink = (name: string): string => {
-                  const nameKey = name.toLowerCase();
-                  if (nameKey.includes('chatbot')) return '/chatbot-product';
-                  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return '/recruiting-product';
-                  return '/products'; // Default fallback
-                };
-
+                const isUpcoming = product.status === 'upcoming';
                 const productLink = getProductLink(product.name);
+                const backgroundImage = product.thumbnail || getProductBackground(product.name);
+                const IconComponent = getProductIcon(product.name);
                 
                 return (
-                  <Card 
-                    key={product.id} 
-                    className="p-8 hover:shadow-xl transition-all duration-300 feature-card cursor-pointer" 
+                  <Card
+                    key={product.id}
+                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
                     data-testid={`card-product-${product.id}`}
                   >
-                    <Link href={productLink}>
-                      <div className="block">
-                        {product.thumbnail ? (
-                          <img 
-                            src={product.thumbnail} 
-                            alt={product.name} 
-                            className="w-full h-48 object-cover rounded-lg mb-6"
-                            onError={(e) => {
-                              // Fallback to default image if thumbnail fails to load
-                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400";
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg mb-6 flex items-center justify-center">
-                            <MessageCircle className="h-12 w-12 text-primary/30" />
-                          </div>
+                    {/* Header Image */}
+                    <div className="h-48 w-full overflow-hidden">
+                      <img
+                        src={backgroundImage}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    
+                    {/* Card Content */}
+                    <div className="p-6">
+                      {/* Title with Icon */}
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          <IconComponent className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900" data-testid={`text-product-title-${product.id}`}>
+                          {product.name}
+                        </h2>
+                      </div>
+                      
+                      {/* Tags */}
+                      <div className="flex items-center gap-2 mb-4">
+                        {product.tag && (
+                          <Badge className="bg-cyan-100 text-cyan-700 border-0 text-xs px-2 py-1 font-medium">
+                            {product.tag}
+                          </Badge>
                         )}
-                        
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className="bg-primary/10 p-3 rounded-lg">
-                            <MessageCircle className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold mb-2" data-testid={`text-product-title-${product.id}`}>
-                              {product.name}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                              {product.tag && (
-                                <>
-                                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                                    {product.tag}
-                                  </Badge>
-                                  <span>•</span>
-                                </>
-                              )}
-                              <span>Available Now</span>
-                            </div>
+                        <Badge className="bg-gray-100 text-gray-600 border-0 text-xs px-2 py-1 font-medium">
+                          {isUpcoming ? 'Coming Soon' : 'Real-time Integration'}
+                        </Badge>
+                      </div>
+                      
+                      {/* Description */}
+                      <p className="text-gray-600 text-sm mb-4 leading-relaxed" data-testid={`text-product-description-${product.id}`}>
+                        {product.description}
+                      </p>
+                      
+                      {/* Features List */}
+                      {product.features && product.features.length > 0 && (
+                        <ul className="space-y-2 mb-6">
+                          {product.features.map((feature: string, index: number) => (
+                            <li key={index} className="flex items-start text-sm text-gray-700">
+                              <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-4">
+                        {/* Pricing */}
+                        <div>
+                          <div className="text-sm text-gray-600" data-testid={`text-product-price-${product.id}`}>
+                            Starting at <span className="text-2xl font-bold text-cyan-500">{product.price}</span><span className="text-sm text-gray-500">/month</span>
                           </div>
                         </div>
                         
-                        <p className="text-muted-foreground mb-6" data-testid={`text-product-description-${product.id}`}>
-                          {product.description}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm text-muted-foreground">Starting at</span>
-                            <div className="text-2xl font-bold text-primary" data-testid={`text-product-price-${product.id}`}>
-                              {product.price}
-                            </div>
-                          </div>
-                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`button-product-learn-more-${product.id}`}>
-                            Learn More
-                          </Button>
+                        {/* CTA Button */}
+                        <div>
+                          {isUpcoming ? (
+                            <Button 
+                              disabled 
+                              className="bg-gray-300 text-gray-600 cursor-not-allowed px-6 py-2"
+                              data-testid={`button-product-learn-more-${product.id}`}
+                            >
+                              Coming Soon
+                            </Button>
+                          ) : (
+                            <Link href={productLink}>
+                              <Button className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md font-medium flex items-center gap-2" data-testid={`button-product-learn-more-${product.id}`}>
+                                Learn More
+                                <ArrowRight className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          )}
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   </Card>
                 );
               })}
