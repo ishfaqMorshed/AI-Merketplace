@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import Home from "@/pages/home";
+import ProductGrid from "@/pages/products";
 import ChatbotProduct from "@/pages/chatbot-product";
 import RecruitingProduct from "@/pages/recruiting-product";
 import NotFound from "@/pages/not-found";
@@ -20,6 +21,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/products" component={ProductGrid} />
       <Route path="/chatbot" component={ChatbotProduct} />
       <Route path="/chatbot-product" component={ChatbotProduct} />
       <Route path="/recruiting" component={RecruitingProduct} />
@@ -29,7 +31,7 @@ function Router() {
       <Route path="/admin/products" component={ManageProducts} />
       <Route path="/admin/hero" component={EditHeroSection} />
       <Route path="/admin/pricing" component={EditPricing} />
-  <Route path="*" component={NotFound} />
+      <Route path="*" component={NotFound} />
     </Switch>
   );
 }
