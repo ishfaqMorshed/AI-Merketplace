@@ -12,6 +12,7 @@ interface Product {
   tag?: string | null;
   status: 'published' | 'upcoming';
   thumbnail?: string;
+  features?: string[];
 }
 
 export default function ManageProducts() {
@@ -19,7 +20,8 @@ export default function ManageProducts() {
   const queryClient = useQueryClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [form, setForm] = useState<Partial<Product> & { file?: File | null }>({
-    status: 'published'
+    status: 'published',
+    features: []
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,24 @@ export default function ManageProducts() {
     }
   };
 
+  const addFeature = () => {
+    setForm(f => ({ ...f, features: [...(f.features || []), ''] }));
+  };
+
+  const removeFeature = (index: number) => {
+    setForm(f => ({ 
+      ...f, 
+      features: (f.features || []).filter((_, i) => i !== index) 
+    }));
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    setForm(f => ({ 
+      ...f, 
+      features: (f.features || []).map((feature, i) => i === index ? value : feature) 
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -49,6 +69,9 @@ export default function ManageProducts() {
     formData.append('price', String((form as any).price || ''));
     if ((form as any).tag) formData.append('tag', (form as any).tag);
     formData.append('status', (form as any).status || 'published');
+    if (form.features && form.features.length > 0) {
+      formData.append('features', JSON.stringify(form.features.filter(f => f.trim() !== '')));
+    }
     if (form.file) formData.append('thumbnail', form.file as any);
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `/api/products/${editingId}` : '/api/products';
@@ -62,7 +85,7 @@ export default function ManageProducts() {
     if (res.ok) {
       toast({ title: editingId ? 'Product updated!' : 'Product added!', variant: 'default' });
       invalidateSiteQueries(queryClient);
-      setForm({});
+      setForm({ status: 'published', features: [] });
       setEditingId(null);
       fetchProducts();
     } else {
@@ -162,6 +185,41 @@ export default function ManageProducts() {
               Current thumbnail: <img src={(form as any).thumbnail} alt="Current" className="inline w-8 h-8 object-cover rounded ml-1" />
             </div>
           )}
+          
+          {/* Features Section */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Feature Lines (appears below description)
+            </label>
+            {(form.features || []).map((feature, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  data-testid={`input-feature-${index}`}
+                  type="text"
+                  value={feature}
+                  onChange={(e) => updateFeature(index, e.target.value)}
+                  placeholder={`Feature ${index + 1}`}
+                  className="border p-2 rounded flex-1"
+                />
+                <button
+                  data-testid={`button-remove-feature-${index}`}
+                  type="button"
+                  onClick={() => removeFeature(index)}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded border border-red-200"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              data-testid="button-add-feature"
+              type="button"
+              onClick={addFeature}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              + Add Feature Line
+            </button>
+          </div>
           <button 
             data-testid="button-save-product"
             type="submit" 
@@ -175,7 +233,7 @@ export default function ManageProducts() {
               data-testid="button-cancel-edit"
               type="button" 
               className="ml-2 text-sm underline" 
-              onClick={() => { setEditingId(null); setForm({ status: 'published' }); }}
+              onClick={() => { setEditingId(null); setForm({ status: 'published', features: [] }); }}
             >
               Cancel
             </button>

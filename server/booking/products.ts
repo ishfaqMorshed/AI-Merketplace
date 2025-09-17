@@ -107,6 +107,16 @@ router.get('/', async (req, res) => {
 
 router.post('/', adminAuth, upload.single('thumbnail'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
+    // Parse features from JSON string if provided
+    let features;
+    if (req.body.features) {
+      try {
+        features = JSON.parse(req.body.features);
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid features format. Must be valid JSON array.' });
+      }
+    }
+
     // Validate the request body
     const validatedData = insertProductSchema.parse({
       name: req.body.name,
@@ -114,6 +124,7 @@ router.post('/', adminAuth, upload.single('thumbnail'), handleMulterError, async
       price: req.body.price,
       tag: req.body.tag || null,
       status: req.body.status || 'published',
+      features: features,
     });
     
     let thumbnail = '';
@@ -144,6 +155,16 @@ router.put('/:id', adminAuth, upload.single('thumbnail'), handleMulterError, asy
   try {
     const { id } = req.params;
     
+    // Parse features from JSON string if provided
+    let features;
+    if (req.body.features) {
+      try {
+        features = JSON.parse(req.body.features);
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid features format. Must be valid JSON array.' });
+      }
+    }
+    
     // Validate the request body (partial update)
     const validatedData = updateProductSchema.parse({
       name: req.body.name,
@@ -151,6 +172,7 @@ router.put('/:id', adminAuth, upload.single('thumbnail'), handleMulterError, asy
       price: req.body.price,
       tag: req.body.tag,
       status: req.body.status,
+      features: features,
     });
     
     // Remove undefined values for partial update
