@@ -4,9 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Check } from "lucide-react";
+import { Check, MessageSquare, Users, ArrowRight } from "lucide-react";
 import type { Product } from "@shared/schema";
 import chatbotBg from "@/assets/chatbot-bg.png";
+import recruitingBg from "@/assets/recruiting-bg.png";
 
 // Helper function to get product link based on name
 const getProductLink = (name: string): string => {
@@ -14,6 +15,22 @@ const getProductLink = (name: string): string => {
   if (nameKey.includes('chatbot')) return '/chatbot-product';
   if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return '/recruiting-product';
   return '#'; // Default for upcoming products
+};
+
+// Helper function to get product background image based on name
+const getProductBackground = (name: string): string => {
+  const nameKey = name.toLowerCase();
+  if (nameKey.includes('chatbot')) return chatbotBg;
+  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return recruitingBg;
+  return chatbotBg; // Default
+};
+
+// Helper function to get product icon based on name
+const getProductIcon = (name: string) => {
+  const nameKey = name.toLowerCase();
+  if (nameKey.includes('chatbot')) return MessageSquare;
+  if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return Users;
+  return MessageSquare; // Default
 };
 
 export default function ProductGrid() {
@@ -58,52 +75,50 @@ export default function ProductGrid() {
   return (
     <div className="max-w-7xl mx-auto py-16 px-4">
       <h1 className="text-3xl md:text-4xl font-bold mb-10 text-center">Our Products</h1>
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 gap-8">
         {products.map((product: Product) => {
           const isUpcoming = product.status === 'upcoming';
           const productLink = getProductLink(product.name);
+          const backgroundImage = product.thumbnail || getProductBackground(product.name);
+          const IconComponent = getProductIcon(product.name);
           
           return (
             <Card
               key={product.id}
-              className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer relative group"
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
               data-testid={`product-card-${product.id}`}
             >
-              {/* Header with background image */}
-              <div 
-                className="relative h-32 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 overflow-hidden"
-                style={{
-                  backgroundImage: `url(${product.thumbnail || chatbotBg})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
-              >
-                {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-blue-900/80"></div>
-                
-                {/* Coming Soon badge */}
-                {isUpcoming && (
-                  <Badge className="absolute top-3 right-3 bg-yellow-400 text-black border-0">
-                    Coming Soon
-                  </Badge>
-                )}
+              {/* Header Image */}
+              <div className="h-48 w-full overflow-hidden">
+                <img
+                  src={backgroundImage}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
               
-              {/* Card content */}
+              {/* Card Content */}
               <div className="p-6">
-                {/* Product name and tags */}
-                <div className="mb-3">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2" data-testid={`product-name-${product.id}`}>
+                {/* Title with Icon */}
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <IconComponent className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900" data-testid={`product-name-${product.id}`}>
                     {product.name}
                   </h2>
-                  <div className="flex items-center gap-2 text-sm">
-                    {product.tag && (
-                      <Badge className="bg-cyan-100 text-cyan-800 border-0 text-xs px-2 py-1">
-                        {product.tag}
-                      </Badge>
-                    )}
-                    <span className="text-gray-600">• {isUpcoming ? 'Coming Soon' : 'Available Now'}</span>
-                  </div>
+                </div>
+                
+                {/* Tags */}
+                <div className="flex items-center gap-2 mb-4">
+                  {product.tag && (
+                    <Badge className="bg-cyan-100 text-cyan-700 border-0 text-xs px-2 py-1 font-medium">
+                      {product.tag}
+                    </Badge>
+                  )}
+                  <Badge className="bg-gray-100 text-gray-600 border-0 text-xs px-2 py-1 font-medium">
+                    {isUpcoming ? 'Coming Soon' : 'Real-time Integration'}
+                  </Badge>
                 </div>
                 
                 {/* Description */}
@@ -111,44 +126,41 @@ export default function ProductGrid() {
                   {product.description}
                 </p>
                 
-                {/* Features list */}
+                {/* Features List */}
                 {product.features && product.features.length > 0 && (
                   <ul className="space-y-2 mb-6">
                     {product.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm text-gray-700">
-                        <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
+                      <li key={index} className="flex items-start text-sm text-gray-700">
+                        <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
                 )}
                 
-                {/* Footer with price and CTA */}
-                <div className="flex items-center justify-between mt-6">
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-4">
+                  {/* Pricing */}
                   <div>
-                    {product.price && (
-                      <div className="text-left">
-                        <div className="text-xs text-gray-500">Starting at</div>
-                        <div className="text-2xl font-bold text-cyan-600" data-testid={`product-price-${product.id}`}>
-                          {product.price}<span className="text-sm font-normal text-gray-500">/month</span>
-                        </div>
-                      </div>
-                    )}
+                    <div className="text-sm text-gray-600" data-testid={`product-price-${product.id}`}>
+                      Starting at <span className="text-2xl font-bold text-cyan-500">{product.price}</span><span className="text-sm text-gray-500">/month</span>
+                    </div>
                   </div>
                   
+                  {/* CTA Button */}
                   <div>
                     {isUpcoming ? (
                       <Button 
                         disabled 
-                        className="bg-gray-300 text-gray-600 cursor-not-allowed border-0"
-                        size="sm"
+                        className="bg-gray-300 text-gray-600 cursor-not-allowed px-6 py-2"
                       >
                         Coming Soon
                       </Button>
                     ) : (
                       <Link href={productLink}>
-                        <Button className="bg-cyan-500 hover:bg-cyan-600 text-white border-0">
+                        <Button className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md font-medium flex items-center gap-2">
                           Learn More
+                          <ArrowRight className="w-4 h-4" />
                         </Button>
                       </Link>
                     )}
