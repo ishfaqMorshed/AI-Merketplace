@@ -14,6 +14,7 @@ const getProductLink = (name: string): string => {
   const nameKey = name.toLowerCase();
   if (nameKey.includes('chatbot')) return '/chatbot-product';
   if (nameKey.includes('recruiting') || nameKey.includes('recruiter')) return '/recruiting-product';
+  if (nameKey.includes('automated') || nameKey.includes('analytics') || nameKey.includes('engagement')) return '/analytics-product';
   return '#'; // Default for upcoming products
 };
 

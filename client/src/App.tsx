@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import ProductGrid from "@/pages/products";
 import ChatbotProduct from "@/pages/chatbot-product";
 import RecruitingProduct from "@/pages/recruiting-product";
+import AnalyticsProduct from "@/pages/analytics-product";
 import NotFound from "@/pages/not-found";
 import AISolutionsPage from "@/pages/ai-solutions";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -26,6 +27,8 @@ function Router() {
       <Route path="/chatbot-product" component={ChatbotProduct} />
       <Route path="/recruiting" component={RecruitingProduct} />
       <Route path="/recruiting-product" component={RecruitingProduct} />
+      <Route path="/analytics" component={AnalyticsProduct} />
+      <Route path="/analytics-product" component={AnalyticsProduct} />
       <Route path="/ai-solutions" component={AISolutionsPage} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/products" component={ManageProducts} />
