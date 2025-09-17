@@ -240,92 +240,92 @@ export default function Home() {
                 const IconComponent = getProductIcon(product.name);
                 
                 return (
-                  <Card
-                    key={product.id}
-                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
-                    data-testid={`card-product-${product.id}`}
-                  >
-                    {/* Header Image */}
-                    <div className="h-48 w-full overflow-hidden">
-                      <img
-                        src={backgroundImage}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    
-                    {/* Card Content */}
-                    <div className="p-6">
-                      {/* Title with Icon */}
-                      <div className="flex items-center mb-3">
-                        <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <IconComponent className="w-4 h-4 text-white" />
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-900" data-testid={`text-product-title-${product.id}`}>
-                          {product.name}
-                        </h2>
+                  <Link href={isUpcoming ? '#' : productLink} key={product.id}>
+                    <Card
+                      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 cursor-pointer"
+                      data-testid={`card-product-${product.id}`}
+                    >
+                      {/* Header Image */}
+                      <div className="h-48 w-full overflow-hidden">
+                        <img
+                          src={backgroundImage}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       
-                      {/* Tags */}
-                      <div className="flex items-center gap-2 mb-4">
-                        {product.tag && (
-                          <Badge className="bg-cyan-100 text-cyan-700 border-0 text-xs px-2 py-1 font-medium">
-                            {product.tag}
-                          </Badge>
-                        )}
-                        <Badge className="bg-gray-100 text-gray-600 border-0 text-xs px-2 py-1 font-medium">
-                          {isUpcoming ? 'Coming Soon' : 'Real-time Integration'}
-                        </Badge>
-                      </div>
-                      
-                      {/* Description */}
-                      <p className="text-gray-600 text-sm mb-4 leading-relaxed" data-testid={`text-product-description-${product.id}`}>
-                        {product.description}
-                      </p>
-                      
-                      {/* Features List */}
-                      {product.features && product.features.length > 0 && (
-                        <ul className="space-y-2 mb-6">
-                          {product.features.map((feature: string, index: number) => (
-                            <li key={index} className="flex items-start text-sm text-gray-700">
-                              <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-4">
-                        {/* Pricing */}
-                        <div>
-                          <div className="text-sm text-gray-600" data-testid={`text-product-price-${product.id}`}>
-                            Starting at <span className="text-2xl font-bold text-cyan-500">{product.price}</span><span className="text-sm text-gray-500">/month</span>
+                      {/* Card Content */}
+                      <div className="p-6">
+                        {/* Title with Icon */}
+                        <div className="flex items-center mb-3">
+                          <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <IconComponent className="w-4 h-4 text-white" />
                           </div>
+                          <h2 className="text-xl font-bold text-gray-900" data-testid={`text-product-title-${product.id}`}>
+                            {product.name}
+                          </h2>
                         </div>
                         
-                        {/* CTA Button */}
-                        <div>
-                          {isUpcoming ? (
+                        {/* Tags */}
+                        <div className="flex items-center gap-2 mb-4">
+                          {product.tag && (
+                            <Badge className="bg-cyan-100 text-cyan-700 border-0 text-xs px-2 py-1 font-medium">
+                              {product.tag}
+                            </Badge>
+                          )}
+                          <Badge className="bg-gray-100 text-gray-600 border-0 text-xs px-2 py-1 font-medium">
+                            {isUpcoming ? 'Coming Soon' : 'Real-time Integration'}
+                          </Badge>
+                        </div>
+                        
+                        {/* Description */}
+                        <p className="text-gray-600 text-sm mb-4 leading-relaxed" data-testid={`text-product-description-${product.id}`}>
+                          {product.description}
+                        </p>
+                        
+                        {/* Features List */}
+                        {product.features && product.features.length > 0 && (
+                          <ul className="space-y-2 mb-6">
+                            {product.features.map((feature: string, index: number) => (
+                              <li key={index} className="flex items-start text-sm text-gray-700">
+                                <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-4">
+                          {/* Pricing */}
+                          <div>
+                            <div className="text-sm text-gray-600" data-testid={`text-product-price-${product.id}`}>
+                              Starting at <span className="text-2xl font-bold text-cyan-500">{product.price}</span><span className="text-sm text-gray-500">/month</span>
+                            </div>
+                          </div>
+                          
+                          {/* CTA Button */}
+                          <div>
                             <Button 
-                              disabled 
-                              className="bg-gray-300 text-gray-600 cursor-not-allowed px-6 py-2"
+                              disabled={isUpcoming}
+                              className={isUpcoming 
+                                ? "bg-gray-300 text-gray-600 cursor-not-allowed px-6 py-2" 
+                                : "bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md font-medium flex items-center gap-2"
+                              }
                               data-testid={`button-product-learn-more-${product.id}`}
                             >
-                              Coming Soon
+                              {isUpcoming ? 'Coming Soon' : (
+                                <>
+                                  Learn More
+                                  <ArrowRight className="w-4 h-4" />
+                                </>
+                              )}
                             </Button>
-                          ) : (
-                            <Link href={productLink}>
-                              <Button className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md font-medium flex items-center gap-2" data-testid={`button-product-learn-more-${product.id}`}>
-                                Learn More
-                                <ArrowRight className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>
