@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useHeroQuery } from '@/lib/siteQueries';
+import { useHeroQuery, useProductsQuery } from '@/lib/siteQueries';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -41,6 +41,7 @@ export default function Home() {
   const { t } = useLanguage();
   const [showDemoModal, setShowDemoModal] = useState(false);
   const { data: heroData } = useHeroQuery();
+  const { data: products, isLoading: productsLoading } = useProductsQuery({ status: 'published' });
   
   // Scroll animation refs
   const [productsRef, productsVisible] = useScrollAnimation();
@@ -195,128 +196,104 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Product 1: AI Business Chatbot */}
-            <Card className="p-8 hover:shadow-xl transition-all duration-300 feature-card cursor-pointer" data-testid="card-product-business-chatbot">
-              <Link href="/chatbot-product">
-                <div className="block">
-                  <img 
-                    src="https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" 
-                    alt="AI Business Chatbot" 
-                    className="w-full h-48 object-cover rounded-lg mb-6"
-                  />
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <MessageCircle className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        AI Business Chatbot
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                          Most Popular
-                        </Badge>
-                        <span>•</span>
-                        <span>Real-time Integration</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground mb-6">
-                    Intelligent chatbot that handles customer inquiries, manages inventory, processes orders, and integrates with WhatsApp and Messenger for seamless customer service.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Real-time data responses (Chatbot feature)</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Image query processing</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Inventory management</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Multi-platform integration</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Starting at</span>
-                      <div className="text-2xl font-bold text-primary">
-                        $299
-                        <span className="text-sm text-muted-foreground font-normal">/month</span>
-                      </div>
-                    </div>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Learn More
-                    </Button>
-                  </div>
+          {productsLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-300 h-48 rounded-lg mb-4"></div>
+                  <div className="bg-gray-300 h-6 rounded mb-2"></div>
+                  <div className="bg-gray-300 h-4 rounded mb-4"></div>
+                  <div className="bg-gray-300 h-10 rounded"></div>
                 </div>
-              </Link>
-            </Card>
-            
-            {/* Product 2: Automated Recruiting */}
-            <Card className="p-8 hover:shadow-xl transition-all duration-300 feature-card cursor-pointer" data-testid="card-product-recruiting">
-              <Link href="/recruiting">
-                <div className="block">
-                  <img 
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" 
-                    alt="Automated Recruiting System" 
-                    className="w-full h-48 object-cover rounded-lg mb-6"
-                    data-testid="img-recruiting"
-                  />
-                  
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="bg-accent/10 p-3 rounded-lg">
-                      <UserCheck className="h-6 w-6 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2" data-testid="text-recruiting-title">
-                        {t.products.recruiting.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                        <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
-                          Time Saver
-                        </Badge>
-                        <span>•</span>
-                        <span>AI-Powered Screening</span>
+              ))}
+            </div>
+          ) : products && products.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {products.map((product: any) => {
+                // Helper function to get product link based on name
+                const getProductLink = (name: string): string => {
+                  const nameKey = name.toLowerCase();
+                  if (nameKey.includes('chatbot')) return '/chatbot-product';
+                  if (nameKey.includes('recruiting')) return '/recruiting-product';
+                  return '/products'; // Default fallback
+                };
+
+                const productLink = getProductLink(product.name);
+                
+                return (
+                  <Card 
+                    key={product.id} 
+                    className="p-8 hover:shadow-xl transition-all duration-300 feature-card cursor-pointer" 
+                    data-testid={`card-product-${product.id}`}
+                  >
+                    <Link href={productLink}>
+                      <div className="block">
+                        {product.thumbnail ? (
+                          <img 
+                            src={product.thumbnail} 
+                            alt={product.name} 
+                            className="w-full h-48 object-cover rounded-lg mb-6"
+                            onError={(e) => {
+                              // Fallback to default image if thumbnail fails to load
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg mb-6 flex items-center justify-center">
+                            <MessageCircle className="h-12 w-12 text-primary/30" />
+                          </div>
+                        )}
+                        
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="bg-primary/10 p-3 rounded-lg">
+                            <MessageCircle className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold mb-2" data-testid={`text-product-title-${product.id}`}>
+                              {product.name}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                              {product.tag && (
+                                <>
+                                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                    {product.tag}
+                                  </Badge>
+                                  <span>•</span>
+                                </>
+                              )}
+                              <span>Available Now</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <p className="text-muted-foreground mb-6" data-testid={`text-product-description-${product.id}`}>
+                          {product.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Starting at</span>
+                            <div className="text-2xl font-bold text-primary" data-testid={`text-product-price-${product.id}`}>
+                              {product.price}
+                            </div>
+                          </div>
+                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`button-product-learn-more-${product.id}`}>
+                            Learn More
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <p className="text-muted-foreground mb-6" data-testid="text-recruiting-description">
-                    {t.products.recruiting.description}
-                  </p>
-                  
-                  <div className="space-y-3 mb-6">
-                    {t.products.recruiting.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3" data-testid={`feature-recruiting-${index}`}>
-                        <Check className="h-4 w-4 text-accent" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Starting at</span>
-                      <div className="text-2xl font-bold text-accent" data-testid="text-recruiting-price">
-                        {t.products.recruiting.price}
-                        <span className="text-sm text-muted-foreground font-normal">{t.products.recruiting.currency}</span>
-                      </div>
-                    </div>
-                    <Button className="bg-accent text-accent-foreground hover:bg-accent/90" data-testid="button-recruiting-learn-more">
-                      {t.products.recruiting.learnMore}
-                    </Button>
-                  </div>
-                </div>
-              </Link>
-            </Card>
-          </div>
+                    </Link>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                No products available at the moment. Please check back soon!
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

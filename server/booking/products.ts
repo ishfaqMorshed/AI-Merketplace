@@ -105,7 +105,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', adminAuth, upload.single('thumbnail'), handleMulterError, async (req, res) => {
+router.post('/', adminAuth, upload.single('thumbnail'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
     // Validate the request body
     const validatedData = insertProductSchema.parse({
@@ -140,7 +140,7 @@ router.post('/', adminAuth, upload.single('thumbnail'), handleMulterError, async
   }
 });
 
-router.put('/:id', adminAuth, upload.single('thumbnail'), handleMulterError, async (req, res) => {
+router.put('/:id', adminAuth, upload.single('thumbnail'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
     const { id } = req.params;
     

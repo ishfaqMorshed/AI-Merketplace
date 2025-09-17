@@ -1,19 +1,10 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useProductsQuery } from "@/lib/siteQueries";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { Product } from "@shared/schema";
-
-// Fetch products from API
-const fetchProducts = async (): Promise<Product[]> => {
-  const response = await fetch('/api/products');
-  if (!response.ok) {
-    throw new Error('Failed to fetch products');
-  }
-  return response.json();
-};
 
 // Helper function to get product link based on name
 const getProductLink = (name: string): string => {
@@ -24,10 +15,7 @@ const getProductLink = (name: string): string => {
 };
 
 export default function ProductGrid() {
-  const { data: products, isLoading, error } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-  });
+  const { data: products, isLoading, error } = useProductsQuery();
 
   if (isLoading) {
     return (
@@ -69,7 +57,7 @@ export default function ProductGrid() {
     <div className="max-w-7xl mx-auto py-16 px-4">
       <h1 className="text-3xl md:text-4xl font-bold mb-10 text-center">Our Products</h1>
       <div className="grid md:grid-cols-3 gap-8">
-        {products.map((product) => {
+        {products.map((product: Product) => {
           const isUpcoming = product.status === 'upcoming';
           const productLink = getProductLink(product.name);
           

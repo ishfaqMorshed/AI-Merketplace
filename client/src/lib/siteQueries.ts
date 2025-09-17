@@ -22,11 +22,14 @@ export function usePricingQuery() {
   });
 }
 
-export function useProductsQuery() {
+export function useProductsQuery(options?: { status?: 'published' | 'upcoming' }) {
+  const { status } = options || {};
+  
   return useQuery({
-    queryKey: ['/api/products'],
+    queryKey: status ? ['/api/products', { status }] : ['/api/products'],
     queryFn: async () => {
-      const res = await fetch('/api/products');
+      const url = status ? `/api/products?status=${status}` : '/api/products';
+      const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to load products');
       return res.json();
     },
