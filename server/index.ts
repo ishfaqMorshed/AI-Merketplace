@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+import fs from 'fs';
+import path from 'path';
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./devViteMiddleware";
+import { setupVite, serveStatic, log } from "../devServer";
 
 const app = express();
 app.use(express.json());
@@ -48,15 +50,26 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Always serve static files (skip Vite dev middleware entirely)
-  serveStatic(app);
+  // Handle development vs production serving
+  const isProd = process.env.NODE_ENV === 'production';
+  if (isProd) {
+    // Check if build directory exists in production
+    const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
+    if (!fs.existsSync(distPath)) {
+      log(`Missing build at ${distPath}. Run: npm run build`, 'server');
+      process.exit(1);
+    }
+    serveStatic(app);
+  } else {
+    await setupVite(app, server);
+  }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '3000', 10);
-  server.listen(port, "127.0.0.1", () => {
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();

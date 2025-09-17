@@ -28,31 +28,19 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
-  // load vite from node_modules using createRequire so this ESM file
-  // can access the CJS entrypoint
-  const { createRequire } = await import('module');
-  const require = createRequire(import.meta.url);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const viteMod: any = require('vite');
+  // Import vite using ESM
+  const { createServer } = await import('vite');
   viteLogger.info('loaded vite');
-
-  const keys = Object.keys(viteMod);
-  viteLogger.info('viteMod keys: ' + JSON.stringify(keys));
-  const createServerFactory = viteMod.createServer ?? viteMod.createViteServer ?? viteMod.default;
-  if (typeof createServerFactory !== 'function') {
-    viteLogger.error('viteMod contents:', viteMod);
-    throw new Error('Could not resolve Vite createServer factory from the installed vite package.');
-  }
 
   let viteConfig: any = {};
   try {
-    const cfg = require('../vite.config');
-    viteConfig = cfg && cfg.__esModule ? cfg.default : cfg;
+    const cfg = await import('../vite.config.js');
+    viteConfig = cfg.default || cfg;
   } catch (e) {
-    viteLogger.warn('vite config not found via require, using defaults');
+    viteLogger.warn('vite config not found, using defaults');
   }
 
-  const vite = await createServerFactory({
+  const vite = await createServer({
     ...viteConfig,
     configFile: false,
     customLogger: {
