@@ -12,6 +12,7 @@ export const products = pgTable("products", {
   tag: text("tag"), // Optional product tag
   status: text("status").notNull().default("published"), // "published" | "upcoming"
   thumbnail: text("thumbnail"),
+  features: text("features").array(), // Array of feature bullet points
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -64,6 +65,7 @@ export const insertProductSchema = createInsertSchema(products).omit({
   createdAt: true,
 }).extend({
   status: z.enum(["published", "upcoming"]).default("published"),
+  features: z.array(z.string()).optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -72,6 +74,7 @@ export const updateProductSchema = z.object({
   price: z.string().optional(),
   tag: z.string().nullable().optional(),
   status: z.enum(["published", "upcoming"]).optional(),
+  features: z.array(z.string()).optional(),
 });
 
 export const insertPricingSchema = createInsertSchema(pricing).omit({
