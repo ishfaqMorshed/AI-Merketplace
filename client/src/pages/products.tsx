@@ -4,7 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { Check } from "lucide-react";
 import type { Product } from "@shared/schema";
+import chatbotBg from "@/assets/chatbot-bg.png";
 
 // Helper function to get product link based on name
 const getProductLink = (name: string): string => {
@@ -64,52 +66,94 @@ export default function ProductGrid() {
           return (
             <Card
               key={product.id}
-              className={`p-6 flex flex-col items-center hover:shadow-xl transition-all duration-300 cursor-pointer relative group ${isUpcoming ? 'opacity-80' : ''}`}
+              className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer relative group"
+              data-testid={`product-card-${product.id}`}
             >
-              {product.thumbnail ? (
-                <img
-                  src={product.thumbnail}
-                  alt={product.name}
-                  className="w-full h-40 object-cover rounded-lg mb-4"
-                  onError={(e) => {
-                    // Fallback to default image if thumbnail fails to load
-                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400";
-                  }}
-                />
-              ) : (
-                <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 flex items-center justify-center text-gray-500">
-                  No Image
-                </div>
-              )}
-              
-              <h2 className="text-xl font-semibold mb-2 text-center">{product.name}</h2>
-              
-              {product.tag && (
-                <Badge variant="secondary" className="mb-2">{product.tag}</Badge>
-              )}
-              
-              <p className="text-muted-foreground text-center mb-4">{product.description}</p>
-              
-              {product.price && (
-                <p className="font-bold text-lg mb-2">{product.price}</p>
-              )}
-              
-              {isUpcoming && (
-                <Badge className="absolute top-4 right-4 bg-yellow-400 text-black">Coming Soon</Badge>
-              )}
-              
-              <div className="mt-auto">
-                {isUpcoming ? (
-                  <Button disabled className="bg-gray-300 text-gray-600 cursor-not-allowed">
+              {/* Header with background image */}
+              <div 
+                className="relative h-32 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 overflow-hidden"
+                style={{
+                  backgroundImage: `url(${product.thumbnail || chatbotBg})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-blue-900/80"></div>
+                
+                {/* Coming Soon badge */}
+                {isUpcoming && (
+                  <Badge className="absolute top-3 right-3 bg-yellow-400 text-black border-0">
                     Coming Soon
-                  </Button>
-                ) : (
-                  <Link href={productLink}>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Learn More
-                    </Button>
-                  </Link>
+                  </Badge>
                 )}
+              </div>
+              
+              {/* Card content */}
+              <div className="p-6">
+                {/* Product name and tags */}
+                <div className="mb-3">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2" data-testid={`product-name-${product.id}`}>
+                    {product.name}
+                  </h2>
+                  <div className="flex items-center gap-2 text-sm">
+                    {product.tag && (
+                      <Badge className="bg-cyan-100 text-cyan-800 border-0 text-xs px-2 py-1">
+                        {product.tag}
+                      </Badge>
+                    )}
+                    <span className="text-gray-600">• {isUpcoming ? 'Coming Soon' : 'Available Now'}</span>
+                  </div>
+                </div>
+                
+                {/* Description */}
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed" data-testid={`product-description-${product.id}`}>
+                  {product.description}
+                </p>
+                
+                {/* Features list */}
+                {product.features && product.features.length > 0 && (
+                  <ul className="space-y-2 mb-6">
+                    {product.features.map((feature, index) => (
+                      <li key={index} className="flex items-center text-sm text-gray-700">
+                        <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                
+                {/* Footer with price and CTA */}
+                <div className="flex items-center justify-between mt-6">
+                  <div>
+                    {product.price && (
+                      <div className="text-left">
+                        <div className="text-xs text-gray-500">Starting at</div>
+                        <div className="text-2xl font-bold text-cyan-600" data-testid={`product-price-${product.id}`}>
+                          {product.price}<span className="text-sm font-normal text-gray-500">/month</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    {isUpcoming ? (
+                      <Button 
+                        disabled 
+                        className="bg-gray-300 text-gray-600 cursor-not-allowed border-0"
+                        size="sm"
+                      >
+                        Coming Soon
+                      </Button>
+                    ) : (
+                      <Link href={productLink}>
+                        <Button className="bg-cyan-500 hover:bg-cyan-600 text-white border-0">
+                          Learn More
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             </Card>
           );
