@@ -9,6 +9,8 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: text("price").notNull(),
+  tag: text("tag"), // Optional product tag
+  status: text("status").notNull().default("published"), // "published" | "upcoming"
   thumbnail: text("thumbnail"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -56,7 +58,22 @@ export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
   createdAt: true,
 });
 
+// Product schemas
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPricingSchema = createInsertSchema(pricing).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type InsertDemoBooking = z.infer<typeof insertDemoBookingSchema>;
 export type DemoBooking = typeof demoBookings.$inferSelect;
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
 export type ChatSession = typeof chatSessions.$inferSelect;
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Pricing = typeof pricing.$inferSelect;
+export type InsertPricing = z.infer<typeof insertPricingSchema>;
