@@ -58,10 +58,20 @@ export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
   createdAt: true,
 });
 
-// Product schemas
+// Product schemas with validation
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
+}).extend({
+  status: z.enum(["published", "upcoming"]).default("published"),
+});
+
+export const updateProductSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  price: z.string().optional(),
+  tag: z.string().nullable().optional(),
+  status: z.enum(["published", "upcoming"]).optional(),
 });
 
 export const insertPricingSchema = createInsertSchema(pricing).omit({
