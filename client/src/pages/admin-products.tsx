@@ -3,6 +3,8 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 import { invalidateSiteQueries } from '@/lib/siteQueries';
+import { FALLBACK_PRODUCTS } from '@shared/fallbackData';
+import { withApiBase } from '@/lib/apiBase';
 
 interface Product {
   id: string;
@@ -11,7 +13,7 @@ interface Product {
   price: string;
   tag?: string | null;
   status: 'published' | 'upcoming';
-  thumbnail?: string;
+  thumbnail?: string | null;
   features?: string[];
 }
 
@@ -25,10 +27,34 @@ export default function ManageProducts() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
 
   const fetchProducts = async () => {
-    const res = await fetch('/api/products');
-    setProducts(await res.json());
+    try {
+      const res = await fetch(withApiBase('/api/products'));
+      if (!res.ok) {
+        throw new Error('Failed to load products');
+      }
+      const data = await res.json();
+      setProducts(
+        data.map((product: any) => ({
+          ...product,
+          features: product.features ?? [],
+          thumbnail: product.thumbnail ?? null,
+        })),
+      );
+      setReadOnly(false);
+    } catch (error) {
+      console.warn('Falling back to static product data in admin panel.', error);
+      setProducts(
+        FALLBACK_PRODUCTS.map((product) => ({
+          ...product,
+          features: product.features ?? [],
+          thumbnail: product.thumbnail ?? null,
+        })),
+      );
+      setReadOnly(true);
+    }
   };
 
   useEffect(() => { fetchProducts(); }, []);
@@ -43,25 +69,35 @@ export default function ManageProducts() {
   };
 
   const addFeature = () => {
+    if (readOnly) return;
     setForm(f => ({ ...f, features: [...(f.features || []), ''] }));
   };
 
   const removeFeature = (index: number) => {
-    setForm(f => ({ 
-      ...f, 
-      features: (f.features || []).filter((_, i) => i !== index) 
+    if (readOnly) return;
+    setForm(f => ({
+      ...f,
+      features: (f.features || []).filter((_, i) => i !== index)
     }));
   };
 
   const updateFeature = (index: number, value: string) => {
-    setForm(f => ({ 
-      ...f, 
-      features: (f.features || []).map((feature, i) => i === index ? value : feature) 
+    if (readOnly) return;
+    setForm(f => ({
+      ...f,
+      features: (f.features || []).map((feature, i) => i === index ? value : feature)
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (readOnly) {
+      toast({
+        title: 'Backend required',
+        description: 'Connect the admin to your API (set VITE_API_BASE_URL) to add or edit products.',
+      });
+      return;
+    }
     setLoading(true);
     const formData = new FormData();
     formData.append('name', (form as any).name || '');
@@ -74,9 +110,9 @@ export default function ManageProducts() {
     }
     if (form.file) formData.append('thumbnail', form.file as any);
     const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `/api/products/${editingId}` : '/api/products';
-    const res = await fetch(url, { 
-      method, 
+    const url = editingId ? withApiBase(`/api/products/${editingId}`) : withApiBase('/api/products');
+    const res = await fetch(url, {
+      method,
       body: formData,
       headers: {
         'Authorization': 'Bearer admin-token'
@@ -95,12 +131,26 @@ export default function ManageProducts() {
   };
 
   const handleEdit = (product: Product) => {
-    setForm({ ...product, file: null });
+    if (readOnly) {
+      toast({
+        title: 'Backend required',
+        description: 'Connect the admin to your API to edit products.',
+      });
+      return;
+    }
+    setForm({ ...product, features: product.features ?? [], file: null });
     setEditingId(product.id);
   };
 
   const handleDelete = async (id: string) => {
-    const res = await fetch(`/api/products/${id}`, { 
+    if (readOnly) {
+      toast({
+        title: 'Backend required',
+        description: 'Connect the admin to your API before deleting products.',
+      });
+      return;
+    }
+    const res = await fetch(withApiBase(`/api/products/${id}`), {
       method: 'DELETE',
       headers: {
         'Authorization': 'Bearer admin-token'
@@ -121,61 +171,67 @@ export default function ManageProducts() {
       <div className="flex-1 max-w-3xl mx-auto py-12 px-4">
         <h1 className="text-2xl font-bold mb-6">Manage Products</h1>
         <form className="mb-8 space-y-4" onSubmit={handleSubmit}>
-          <input 
+          <input
             data-testid="input-product-name"
-            name="name" 
-            value={(form as any).name || ''} 
-            onChange={handleInput} 
-            placeholder="Product Name" 
-            className="border p-2 rounded w-full" 
-            required 
-          />
-          <textarea 
-            data-testid="input-product-description"
-            name="description" 
-            value={(form as any).description || ''} 
-            onChange={handleInput} 
-            placeholder="Description" 
-            className="border p-2 rounded w-full" 
-            rows={3}
-            required 
-          />
-          <input 
-            data-testid="input-product-price"
-            name="price" 
-            type="text" 
-            value={(form as any).price || ''} 
-            onChange={handleInput} 
-            placeholder="Price (e.g., $299, Free, Contact Us)" 
-            className="border p-2 rounded w-full" 
-            required 
-          />
-          <input 
-            data-testid="input-product-tag"
-            name="tag" 
-            value={(form as any).tag || ''} 
-            onChange={handleInput} 
-            placeholder="Tag (optional, e.g., Most Popular, New)" 
-            className="border p-2 rounded w-full" 
-          />
-          <select 
-            data-testid="select-product-status"
-            name="status" 
-            value={(form as any).status || 'published'} 
-            onChange={handleInput} 
+            name="name"
+            value={(form as any).name || ''}
+            onChange={handleInput}
+            placeholder="Product Name"
             className="border p-2 rounded w-full"
             required
+            disabled={readOnly}
+          />
+          <textarea
+            data-testid="input-product-description"
+            name="description"
+            value={(form as any).description || ''}
+            onChange={handleInput}
+            placeholder="Description"
+            className="border p-2 rounded w-full"
+            rows={3}
+            required
+            disabled={readOnly}
+          />
+          <input
+            data-testid="input-product-price"
+            name="price"
+            type="text"
+            value={(form as any).price || ''}
+            onChange={handleInput}
+            placeholder="Price (e.g., $299, Free, Contact Us)"
+            className="border p-2 rounded w-full"
+            required
+            disabled={readOnly}
+          />
+          <input
+            data-testid="input-product-tag"
+            name="tag"
+            value={(form as any).tag || ''}
+            onChange={handleInput}
+            placeholder="Tag (optional, e.g., Most Popular, New)"
+            className="border p-2 rounded w-full"
+            disabled={readOnly}
+          />
+          <select
+            data-testid="select-product-status"
+            name="status"
+            value={(form as any).status || 'published'}
+            onChange={handleInput}
+            className="border p-2 rounded w-full"
+            required
+            disabled={readOnly}
           >
             <option value="published">Published</option>
             <option value="upcoming">Upcoming</option>
           </select>
-          <input 
+          <input
             data-testid="input-product-thumbnail"
-            name="file" 
-            type="file" 
-            accept="image/*" 
-            onChange={handleInput} 
-            className="w-full" 
+            name="file"
+            type="file"
+            accept="image/*"
+            onChange={handleInput}
+            className="w-full"
+            disabled={readOnly}
           />
           {form.file && (
             <div className="text-sm text-green-600">Selected: {form.file.name}</div>
@@ -200,12 +256,14 @@ export default function ManageProducts() {
                   onChange={(e) => updateFeature(index, e.target.value)}
                   placeholder={`Feature ${index + 1}`}
                   className="border p-2 rounded flex-1"
+                  disabled={readOnly}
                 />
                 <button
                   data-testid={`button-remove-feature-${index}`}
                   type="button"
                   onClick={() => removeFeature(index)}
                   className="px-3 py-2 text-red-600 hover:bg-red-50 rounded border border-red-200"
+                  disabled={readOnly}
                 >
                   ×
                 </button>
@@ -216,24 +274,26 @@ export default function ManageProducts() {
               type="button"
               onClick={addFeature}
               className="text-blue-600 hover:underline text-sm"
+              disabled={readOnly}
             >
               + Add Feature Line
             </button>
           </div>
-          <button 
+          <button
             data-testid="button-save-product"
-            type="submit" 
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50" 
-            disabled={loading}
+            type="submit"
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50"
+            disabled={loading || readOnly}
           >
             {loading ? 'Saving...' : (editingId ? 'Update Product' : 'Add Product')}
           </button>
           {editingId && (
-            <button 
+            <button
               data-testid="button-cancel-edit"
-              type="button" 
-              className="ml-2 text-sm underline" 
+              type="button"
+              className="ml-2 text-sm underline"
               onClick={() => { setEditingId(null); setForm({ status: 'published', features: [] }); }}
+              disabled={readOnly}
             >
               Cancel
             </button>
@@ -276,17 +336,19 @@ export default function ManageProducts() {
                   </span>
                 </div>
               </div>
-              <button 
+              <button
                 data-testid={`button-edit-${product.id}`}
-                className="text-blue-600 hover:underline mr-2" 
+                className="text-blue-600 hover:underline mr-2"
                 onClick={() => handleEdit(product)}
+                disabled={readOnly}
               >
                 Edit
               </button>
-              <button 
+              <button
                 data-testid={`button-delete-${product.id}`}
-                className="text-red-600 hover:underline" 
+                className="text-red-600 hover:underline"
                 onClick={() => handleDelete(product.id)}
+                disabled={readOnly}
               >
                 Delete
               </button>
@@ -298,6 +360,11 @@ export default function ManageProducts() {
             </div>
           )}
         </div>
+        {readOnly && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Static demo products are displayed. Configure the backend to enable editing.
+          </p>
+        )}
       </div>
     </div>
   );
